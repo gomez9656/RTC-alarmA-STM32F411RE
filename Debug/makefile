@@ -28,13 +28,13 @@ endif
 # Add inputs and outputs from these tool invocations to the build variables 
 
 # All Target
-all: RTC-Date-Time.elf
+all: RTC-alarm-A.elf
 
 # Tool invocations
-RTC-Date-Time.elf: $(OBJS) $(USER_OBJS) ../STM32F411RETx_FLASH.ld
+RTC-alarm-A.elf: $(OBJS) $(USER_OBJS) ../STM32F411RETx_FLASH.ld
 	@echo 'Building target: $@'
 	@echo 'Invoking: MCU GCC Linker'
-	arm-none-eabi-gcc -mcpu=cortex-m4 -mthumb -mfloat-abi=hard -mfpu=fpv4-sp-d16 -specs=nosys.specs -specs=nano.specs -T"../STM32F411RETx_FLASH.ld" -Wl,-Map=output.map -Wl,--gc-sections -o "RTC-Date-Time.elf" @"objects.list" $(USER_OBJS) $(LIBS) -lm
+	arm-none-eabi-gcc -mcpu=cortex-m4 -mthumb -mfloat-abi=hard -mfpu=fpv4-sp-d16 -specs=nosys.specs -specs=nano.specs -T"../STM32F411RETx_FLASH.ld" -Wl,-Map=output.map -Wl,--gc-sections -o "RTC-alarm-A.elf" @"objects.list" $(USER_OBJS) $(LIBS) -lm
 	@echo 'Finished building target: $@'
 	@echo ' '
 	$(MAKE) --no-print-directory post-build
@@ -46,8 +46,8 @@ clean:
 
 post-build:
 	-@echo 'Generating hex and Printing size information:'
-	arm-none-eabi-objcopy -O ihex "RTC-Date-Time.elf" "RTC-Date-Time.hex"
-	arm-none-eabi-size "RTC-Date-Time.elf"
+	arm-none-eabi-objcopy -O ihex "RTC-alarm-A.elf" "RTC-alarm-A.hex"
+	arm-none-eabi-size "RTC-alarm-A.elf"
 	-@echo ' '
 
 .PHONY: all clean dependents

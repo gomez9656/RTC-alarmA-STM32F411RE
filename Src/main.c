@@ -1,6 +1,5 @@
 /*
- * This project is to test the RTC peripheral. You can set a date and a time
- * and print it using printmsg
+ * This project is to use the RTC alarm A and trigger an interrupt
 */
 #include "stm32f4xx.h"
 #include "main.h"
@@ -18,6 +17,8 @@ void UART2_Init(void);
 void RTC_Init(void);
 void RTC_CalendarConfig(void);
 void HAL_GPIO_EXTI_Callback(uint16_t Gpio_pin);
+void HAL_RTC_AlarmAEventCallback(RTC_HandleTypeDef *hrtc);
+void RTC_AlarmConfig(void);
 
 UART_HandleTypeDef huart2; //Handle of UART 2
 RTC_HandleTypeDef hrtc;
@@ -49,8 +50,6 @@ int main(){
 	UART2_Init();
 
 	RTC_Init();
-
-	RTC_CalendarConfig();
 
 	while(1){
 	}
@@ -86,8 +85,8 @@ void RTC_CalendarConfig(void){
 
 	//This are not BCD values, the HAL_RTC_SetTime will change it for us
 	RTC_TimeInit.Hours = 12;
-	RTC_TimeInit.Minutes = 11;
-	RTC_TimeInit.Seconds = 10;
+	RTC_TimeInit.Minutes = 45;
+	RTC_TimeInit.Seconds = 00;
 	RTC_TimeInit.TimeFormat = RTC_HOURFORMAT12_PM;
 
 	HAL_RTC_SetTime(&hrtc, &RTC_TimeInit, RTC_FORMAT_BIN);
@@ -249,6 +248,8 @@ void HAL_GPIO_EXTI_Callback(uint16_t Gpio_pin){
 	RTC_TimeTypeDef RTC_TimeRead;
 	RTC_DateTypeDef RTC_DateRead;
 
+	RTC_CalendarConfig();
+
 	HAL_RTC_GetTime(&hrtc, &RTC_TimeRead, RTC_FORMAT_BIN);
 	HAL_RTC_GetDate(&hrtc, &RTC_DateRead, RTC_FORMAT_BIN);
 
@@ -258,9 +259,37 @@ void HAL_GPIO_EXTI_Callback(uint16_t Gpio_pin){
 	printmsg("Current data is :%02d-%02d-%02 <%s> d\r\n", RTC_DateRead.Month, \
 			RTC_DateRead.Date, RTC_DateRead.Year, getDayofWeek(RTC_DateRead.Date));
 
+	RTC_AlarmConfig();
 }
 
+void RTC_AlarmConfig(void){
 
+	RTC_AlarmTypeDef AlarmA_Set;
+
+	memset(&AlarmA_Set, 0, sizeof(AlarmA_Set)); //Avoid garbage values in automatic variables
+
+	HAL_RTC_DeactivateAlarm(&hrtc, RTC_ALARM_A);
+
+	//xx.45:09
+	AlarmA_Set.Alarm = RTC_ALARM_A;
+	AlarmA_Set.AlarmTime.Minutes = 45;
+	AlarmA_Set.AlarmTime.Seconds = 9;
+	AlarmA_Set.AlarmMask = RTC_ALARMMASK_HOURS | RTC_ALARMMASK_DATEWEEKDAY;
+	AlarmA_Set.AlarmSubSecondMask = RTC_ALARMSUBSECONDMASK_NONE;
+
+	if(HAL_RTC_SetAlarm_IT(&hrtc, &AlarmA_Set, RTC_FORMAT_BIN) != HAL_OK){
+		Error_handler();
+	}
+}
+
+void HAL_RTC_AlarmAEventCallback(RTC_HandleTypeDef *hrtc){
+
+	printmsg("Alarm triggered \r\n");
+
+	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_SET);
+	HAL_Delay(2000);
+	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET);
+}
 
 void Error_handler(void){
 	while(1);

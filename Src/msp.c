@@ -46,6 +46,10 @@ void HAL_RTC_MspInit(RTC_HandleTypeDef* hrtc){
 	//3. Enable the RTC Clock
 	__HAL_RCC_RTC_ENABLE();
 
+	//4.Enable RTC Alarm IRQ
+	HAL_NVIC_SetPriority(RTC_Alarm_IRQn, 15, 0);
+	HAL_NVIC_EnableIRQ(RTC_Alarm_IRQn);
+
 
 }
 
